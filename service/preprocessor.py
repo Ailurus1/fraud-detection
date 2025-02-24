@@ -2,6 +2,7 @@ import json
 import pickle
 from pathlib import Path
 from confluent_kafka import Consumer, Producer
+import argparse
 
 class TransactionPreprocessor:
     def __init__(self, metadata_path, bootstrap_servers=['localhost:9095', 'localhost:9096']):
@@ -43,6 +44,7 @@ class TransactionPreprocessor:
 
             try:
                 transaction = json.loads(msg.value().decode('utf-8'))
+                print(f"Received: msg={msg}\ndata={transaction}")
                 processed = self.preprocess_transaction(transaction)
                 
                 self.producer.produce(
@@ -53,6 +55,25 @@ class TransactionPreprocessor:
                     }).encode('utf-8'),
                     callback=self.delivery_report
                 )
-                self.producer.poll(0)
+                # self.producer.poll(0)
             except Exception as e:
                 print(f"Processing error: {e}")
+
+def main(metadata_path, bootstrap_servers):
+    print("Starting preprocessor...")
+    preprocessor = TransactionPreprocessor(
+        metadata_path=metadata_path,
+        bootstrap_servers=bootstrap_servers.split(',')
+    )
+    preprocessor.start()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Transaction Preprocessor Service')
+    parser.add_argument('--metadata-path', 
+                       default='artifacts/00_boosting/metadata.pkl',
+                       help='Path to metadata pickle file')
+    parser.add_argument('--bootstrap-servers', 
+                       default='localhost:9095,localhost:9096',
+                       help='Comma-separated list of bootstrap servers')
+    args = parser.parse_args()
+    main(args.metadata_path, args.bootstrap_servers)
