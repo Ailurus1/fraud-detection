@@ -4,7 +4,7 @@ from pathlib import Path
 from confluent_kafka import Consumer, Producer
 
 class TransactionPreprocessor:
-    def __init__(self, bootstrap_servers=['localhost:9095', 'localhost:9096']):
+    def __init__(self, metadata_path, bootstrap_servers=['localhost:9095', 'localhost:9096']):
         self.consumer = Consumer({
             'bootstrap.servers': ','.join(bootstrap_servers),
             'group.id': 'preprocessor_group',
@@ -14,10 +14,10 @@ class TransactionPreprocessor:
             'bootstrap.servers': ','.join(bootstrap_servers)
         })
         self.consumer.subscribe(['anonymized_transactions'])
-        self.load_metadata()
+        self.load_metadata(metadata_path)
 
-    def load_metadata(self):
-        path = Path('../artifacts/00_boosting/metadata.pkl')
+    def load_metadata(self, metadata_path):
+        path = Path(metadata_path)
         with open(path, 'rb') as f:
             metadata = pickle.load(f)
             self.features = metadata['features']
