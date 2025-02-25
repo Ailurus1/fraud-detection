@@ -1,3 +1,4 @@
+import os
 import json
 import pickle
 from pathlib import Path
@@ -55,7 +56,7 @@ class TransactionPreprocessor:
                     }).encode('utf-8'),
                     callback=self.delivery_report
                 )
-                # self.producer.poll(0)
+
             except Exception as e:
                 print(f"Processing error: {e}")
 
@@ -73,7 +74,7 @@ if __name__ == "__main__":
                        default='artifacts/00_boosting/metadata.pkl',
                        help='Path to metadata pickle file')
     parser.add_argument('--bootstrap-servers', 
-                       default='localhost:9095,localhost:9096',
+                       default=os.environ.get('BOOTSTRAP_SERVERS', 'localhost:9095,localhost:9096'),
                        help='Comma-separated list of bootstrap servers')
     args = parser.parse_args()
     main(args.metadata_path, args.bootstrap_servers)

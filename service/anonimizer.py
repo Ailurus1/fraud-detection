@@ -1,3 +1,4 @@
+import os
 import json
 import hashlib
 import argparse
@@ -43,7 +44,7 @@ class TransactionAnonymizer:
                     json.dumps(transaction).encode('utf-8'),
                     callback=self.delivery_report
                 )
-                # self.producer.poll(0)
+
             except Exception as e:
                 print(f"Processing error: {e}")
 
@@ -55,7 +56,7 @@ def main(bootstrap_servers):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transaction Anonymizer Service')
     parser.add_argument('--bootstrap-servers', 
-                       default='localhost:9095,localhost:9096',
+                       default=os.environ.get('BOOTSTRAP_SERVERS', 'localhost:9095,localhost:9096'),
                        help='Comma-separated list of bootstrap servers')
     args = parser.parse_args()
     main(args.bootstrap_servers)

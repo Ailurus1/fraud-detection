@@ -1,3 +1,4 @@
+import os
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import sys
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--frequency', type=float, default=0.5,
                        help='Production frequency in seconds')
     parser.add_argument('--bootstrap-servers', 
-                       default='localhost:9095,localhost:9096',
+                       default=os.environ.get('BOOTSTRAP_SERVERS', 'localhost:9095,localhost:9096'),
                        help='Comma-separated list of bootstrap servers')
     args = parser.parse_args()
     main(args.producer, args.n_producers, args.frequency, args.bootstrap_servers) 

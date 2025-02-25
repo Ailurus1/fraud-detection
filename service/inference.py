@@ -1,3 +1,4 @@
+import os
 import json
 from pathlib import Path
 from confluent_kafka import Consumer, Producer
@@ -40,9 +41,9 @@ class TransactionInference:
                 data = json.loads(msg.value().decode('utf-8'))
                 print(f"Received: msg={msg}\ndata={data}")
                 
-                # Convert features to numpy array and reshape
                 features = list(data['processed'].values())
-                features = np.array(features).reshape(1, -1)  # Reshape to 2D array
+                print(f"Features: {features}\nType: {type(features[0])}")
+                features = np.array(features).reshape(1, -1)
                 
                 prediction = bool(self.model.predict(features)[0])
                 
@@ -56,7 +57,6 @@ class TransactionInference:
                     json.dumps(result).encode('utf-8'),
                     callback=self.delivery_report
                 )
-                # self.producer.poll(0)
 
             except Exception as e:
                 print(f"Processing error: {e}")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                        default='artifacts/00_boosting/fraud_detection_model.cbm',
                        help='Path to the model file')
     parser.add_argument('--bootstrap-servers', 
-                       default='localhost:9095,localhost:9096',
+                       default=os.environ.get('BOOTSTRAP_SERVERS', 'localhost:9095,localhost:9096'),
                        help='Comma-separated list of bootstrap servers')
     args = parser.parse_args()
     main(args.model_path, args.bootstrap_servers)

@@ -5,18 +5,31 @@ authors = [
   { name = "Ailurus1", email = "email@example.com" },
 ]
 description = "A simple fraud detection system"
-readme = "README.md"
+
 requires-python = ">=3.8"
 
 dependencies = [
-    "confluent-kafka",
-    "catboost",
+    "confluent-kafka"
+]
+
+[project.optional-dependencies]
+producer = [
     "polars",
-    "gradio",
+    "kagglehub"
+]
+preprocessor = [
+    "scikit-learn"
+]
+inference = [
+    "catboost",
     "numpy",
-    "scikit-learn",
+    "scikit-learn"
+]
+ui = [
+    "gradio"
+]
+modeling = [
     "notebook",
-    "kagglehub",
     "imbalanced-learn"
 ]
 

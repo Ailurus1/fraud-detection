@@ -1,3 +1,4 @@
+import os
 import json
 import gradio as gr
 from confluent_kafka import Consumer
@@ -42,6 +43,7 @@ class TransactionUI:
         return interface
 
     def _consume_messages(self):
+        print("Starting message consumption...")
         while True:
             msg = self.consumer.poll(1.0)
             if msg is None:
@@ -52,16 +54,27 @@ class TransactionUI:
 
             try:
                 result = json.loads(msg.value().decode('utf-8'))
-                print(f"Received: msg={msg}\ndata={result}")
+                print(f"UI received message: {result}")
                 self.update_transactions(result)
+                print(f"Updated transactions list. Current length: {len(self.transactions)}")
             except Exception as e:
                 print(f"Processing error: {e}")
+                import traceback
+                print(traceback.format_exc())
 
     def start(self, open_browser: bool = True):
+        print("Creating consumer thread...")
         Thread(target=self._consume_messages, daemon=True).start()
         
+        print("Creating Gradio interface...")
         interface = self.create_interface()
-        interface.launch(inbrowser=open_browser)
+        print("Launching interface...")
+        interface.launch(
+            inbrowser=open_browser,
+            server_name="0.0.0.0",
+            server_port=7860,
+            share=False
+        )
 
 def main(bootstrap_servers, max_rows, open_browser):
     print("Starting UI...")
@@ -74,7 +87,7 @@ def main(bootstrap_servers, max_rows, open_browser):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Transaction UI Service')
     parser.add_argument('--bootstrap-servers', 
-                       default='localhost:9095,localhost:9096',
+                       default=os.environ.get('BOOTSTRAP_SERVERS', 'localhost:9095,localhost:9096'),
                        help='Comma-separated list of bootstrap servers')
     parser.add_argument('--max-rows', type=int, default=10,
                        help='Maximum number of transactions to display')

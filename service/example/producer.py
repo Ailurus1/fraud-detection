@@ -33,6 +33,7 @@ class TransactionProducer:
         print("Start producing...")
         while True:
             transaction = random.choice(self.data)
+            print(f"Producing transaction: {transaction}")
             
             self.producer.produce(
                 'raw_transactions',
