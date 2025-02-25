@@ -56,7 +56,7 @@ services:
     command: >
       sh -c "\
         sleep 15 && \
-        python3 -m service.producers --n-producers=2"
+        python3 -m services.producers --n-producers=2"
 
   anonymizer:
     build:
@@ -70,7 +70,7 @@ services:
     depends_on:
       - kafka-broker-0
       - kafka-broker-1
-    command: ["python", "-m", "service.anonymizer"]
+    command: ["python", "-m", "services.anonymizer"]
 
   preprocessor:
     build:
@@ -86,7 +86,7 @@ services:
     depends_on:
       - kafka-broker-0
       - kafka-broker-1
-    command: ["python", "-m", "service.preprocessor"]
+    command: ["python", "-m", "services.preprocessor"]
 
   inference:
     build:
@@ -102,7 +102,7 @@ services:
     depends_on:
       - kafka-broker-0
       - kafka-broker-1
-    command: ["python", "-m", "service.inference"]
+    command: ["python", "-m", "services.inference"]
 
   ui:
     build:
@@ -125,4 +125,4 @@ services:
       retries: 3
     networks:
       - default
-    command: ["python", "-m", "service.ui"]
+    command: ["python", "-m", "services.ui"]

@@ -9,6 +9,7 @@ description = "A simple fraud detection system"
 requires-python = ">=3.8"
 
 dependencies = [
+    "pre-commit",
     "confluent-kafka"
 ]
 
@@ -34,7 +35,7 @@ modeling = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["service"]
+packages = ["services"]
 
 [build-system]
 requires = ["hatchling"]
