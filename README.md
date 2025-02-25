@@ -18,6 +18,8 @@ After some time, when all services will be up, you can open `http://localhost:78
 
 ![web-ui](img//dashboard.png)
 
+> Note: you may need some time (~30-40 secs) for UI to start rendering charts  
+
 Additional:  
 `producers` - example producers that samples data from a chosen dataset (see [docs](https://github.com/Ailurus1/fraud-detection/services/example/README.md)). Number of producers can be configured with `--n-producers=<N>` (default is 2).
 
