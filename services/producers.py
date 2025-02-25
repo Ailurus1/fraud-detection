@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Transaction Producer Service")
     parser.add_argument("--producer", default="example", help="Producer module to use")
     parser.add_argument(
-        "--n-producers", type=int, default=1, help="Number of producer instances"
+        "--n-producers", type=int, default=2, help="Number of producer instances"
     )
     parser.add_argument(
         "--frequency", type=float, default=None, help="Production frequency in seconds"
