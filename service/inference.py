@@ -1,10 +1,13 @@
 import os
 import json
+import logging
 from pathlib import Path
 from confluent_kafka import Consumer, Producer
 from catboost import CatBoostClassifier
 import numpy as np
 import argparse
+
+logger = logging.getLogger(__name__)
 
 class TransactionInference:
     def __init__(self, model_path, bootstrap_servers=['localhost:9095', 'localhost:9096']):
@@ -26,26 +29,27 @@ class TransactionInference:
 
     def delivery_report(self, err, msg):
         if err is not None:
-            print(f'Message delivery failed: {err}')
+            logger.error(f'Message delivery failed: {err}')
 
     def start(self):
+        logger.info("Starting inference service...")
         while True:
             msg = self.consumer.poll(1.0)
             if msg is None:
                 continue
             if msg.error():
-                print(f"Consumer error: {msg.error()}")
+                logger.error(f"Consumer error: {msg.error()}")
                 continue
 
             try:
                 data = json.loads(msg.value().decode('utf-8'))
-                print(f"Received: msg={msg}\ndata={data}")
+                logger.info(f"Received transaction for inference. data={data['processed']}")
                 
                 features = list(data['processed'].values())
-                print(f"Features: {features}\nType: {type(features[0])}")
                 features = np.array(features).reshape(1, -1)
                 
                 prediction = bool(self.model.predict(features)[0])
+                logger.info(f"Prediction made: is_fraud={prediction}")
                 
                 result = {
                     'transaction': data['original'],
@@ -59,11 +63,13 @@ class TransactionInference:
                 )
 
             except Exception as e:
-                print(f"Processing error: {e}")
-                print(f"Features shape: {np.array(features).shape}")  # Debug info
+                logger.error(f"Processing error: {e}")
 
 def main(model_path, bootstrap_servers):
-    print("Starting inference engine...")
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
     engine = TransactionInference(
         model_path=model_path,
         bootstrap_servers=bootstrap_servers.split(',')

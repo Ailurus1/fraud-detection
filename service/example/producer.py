@@ -9,7 +9,7 @@ from confluent_kafka import Producer
 
 path = Path(kagglehub.dataset_download("jainilcoder/online-payment-fraud-detection"))
 df = pl.read_csv(path / "onlinefraud.csv")
-seed = os.environ.get("SEED", 42)
+seed = os.environ.get("SEED", None)
 
 class TransactionProducer:
     def __init__(self, bootstrap_servers=['localhost:9095', 'localhost:9096'], frequency=1.0):

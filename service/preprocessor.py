@@ -1,9 +1,12 @@
 import os
 import json
 import pickle
+import logging
 from pathlib import Path
 from confluent_kafka import Consumer, Producer
 import argparse
+
+logger = logging.getLogger(__name__)
 
 class TransactionPreprocessor:
     def __init__(self, metadata_path, bootstrap_servers=['localhost:9095', 'localhost:9096']):
@@ -27,7 +30,7 @@ class TransactionPreprocessor:
 
     def delivery_report(self, err, msg):
         if err is not None:
-            print(f'Message delivery failed: {err}')
+            logger.error(f'Message delivery failed: {err}')
 
     def preprocess_transaction(self, transaction):
         transaction['type_encoded'] = int(self.label_encoder.transform([transaction['type']])[0])
@@ -35,17 +38,17 @@ class TransactionPreprocessor:
         return processed
 
     def start(self):
+        logger.info("Starting preprocessor service...")
         while True:
             msg = self.consumer.poll(1.0)
             if msg is None:
                 continue
             if msg.error():
-                print(f"Consumer error: {msg.error()}")
+                logger.error(f"Consumer error: {msg.error()}")
                 continue
 
             try:
                 transaction = json.loads(msg.value().decode('utf-8'))
-                print(f"Received: msg={msg}\ndata={transaction}")
                 processed = self.preprocess_transaction(transaction)
                 
                 self.producer.produce(
@@ -56,12 +59,16 @@ class TransactionPreprocessor:
                     }).encode('utf-8'),
                     callback=self.delivery_report
                 )
+                logger.info("Transaction preprocessed successfully")
 
             except Exception as e:
-                print(f"Processing error: {e}")
+                logger.error(f"Processing error: {e}")
 
 def main(metadata_path, bootstrap_servers):
-    print("Starting preprocessor...")
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
     preprocessor = TransactionPreprocessor(
         metadata_path=metadata_path,
         bootstrap_servers=bootstrap_servers.split(',')

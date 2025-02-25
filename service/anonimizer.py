@@ -1,8 +1,11 @@
 import os
 import json
 import hashlib
+import logging
 import argparse
 from confluent_kafka import Consumer, Producer
+
+logger = logging.getLogger(__name__)
 
 class TransactionAnonymizer:
     def __init__(self, bootstrap_servers=['localhost:9095', 'localhost:9096']):
@@ -21,20 +24,20 @@ class TransactionAnonymizer:
 
     def delivery_report(self, err, msg):
         if err is not None:
-            print(f'Message delivery failed: {err}')
+            logger.error(f'Message delivery failed: {err}')
 
     def start(self):
+        logger.info("Starting anonymizer service...")
         while True:
             msg = self.consumer.poll(1.0)
             if msg is None:
                 continue
             if msg.error():
-                print(f"Consumer error: {msg.error()}")
+                logger.error(f"Consumer error: {msg.error()}")
                 continue
 
             try:
                 transaction = json.loads(msg.value().decode('utf-8'))
-                print(f"Received: msg={msg}\ndata={transaction}")
                 
                 transaction['nameOrig'] = self.anonymize_id(transaction['nameOrig'])
                 transaction['nameDest'] = self.anonymize_id(transaction['nameDest'])
@@ -44,12 +47,16 @@ class TransactionAnonymizer:
                     json.dumps(transaction).encode('utf-8'),
                     callback=self.delivery_report
                 )
+                logger.info("Transaction anonymized successfully")
 
             except Exception as e:
-                print(f"Processing error: {e}")
+                logger.error(f"Processing error: {e}")
 
 def main(bootstrap_servers):
-    print("Starting anonymizer...")
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
     anonymizer = TransactionAnonymizer(bootstrap_servers=bootstrap_servers.split(','))
     anonymizer.start()
 
